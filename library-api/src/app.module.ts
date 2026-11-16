@@ -1,22 +1,30 @@
-import { Module } from '@nestjs/common';
-import { createObserveModule } from '@nestjs/observe';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
-export const { ObserveModule, ObserveInstrument } = createObserveModule();
+import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { AuthModule } from './auth/auth.module';
+import { GenresModule } from './genres/genres.module';
+import { BooksModule } from './books/books.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    // Distributed tracing, auto-correlated logs, request/job metrics, error
-    // telemetry, alarms, and more — out of the box. Sign up at https://observe.nestjs.com,
-    // then run `npx @nestjs/observe link` to write your key pair into .env.
-    ObserveModule.forRoot({
-      appKey: process.env.OBSERVE_APP_KEY ?? 'YOUR_APP_KEY',
-      appSecret: process.env.OBSERVE_APP_SECRET ?? 'YOUR_APP_SECRET',
-      serviceId: 'library-api',
-    }),
+    // Configure rate limiting: 100 requests per 60 seconds (global default)
+    ThrottlerModule.forRoot([{
+      ttl: 60000,  // Time window in milliseconds (60 seconds)
+      limit: 100,  // Max requests per time window
+    }]),
+    AuthModule,
+    GenresModule,
+    BooksModule,
+    UsersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    // Apply ThrottlerGuard globally to all routes
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

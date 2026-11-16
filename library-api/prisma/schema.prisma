@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,17 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  PATRON
-  LIBRARIAN
-}
-
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
-  role      Role     @default(PATRON)
-  reviews   Review[] 
+  id      Int      @id @default(autoincrement())
+  email   String   @unique
+  password String
+  name    String?
+  role    Role     @default(PATRON)
+  reviews Review[]
 }
 
 model Genre {
@@ -36,7 +31,7 @@ model Book {
   availableCopies Int      @default(1)
   genreId         Int
   genre           Genre    @relation(fields: [genreId], references: [id])
-  reviews         Review[] 
+  reviews         Review[]
 }
 
 model Review {
@@ -44,7 +39,12 @@ model Review {
   rating  Int
   comment String
   bookId  Int
-  book    Book   @relation(fields: [bookId], references: [id])
   userId  Int
+  book    Book   @relation(fields: [bookId], references: [id])
   user    User   @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  PATRON
+  LIBRARIAN
 }

@@ -1,0 +1,91 @@
+
+{
+  "info": {
+    "name": "Library Management System API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"librarian@library.com\",\n  \"password\": \"SecurePass123!\",\n  \"name\": \"Head Librarian\",\n  \"role\": \"LIBRARIAN\"\n}"
+            },
+            "url": { "raw": "http://localhost:3000/auth/register", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"librarian@library.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": { "raw": "http://localhost:3000/auth/login", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["auth", "login"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Genres",
+      "item": [
+        {
+          "name": "Get All Genres",
+          "request": { "method": "GET", "url": { "raw": "http://localhost:3000/genres", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["genres"] } }
+        },
+        {
+          "name": "Create Genre (Librarian Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Historical Fiction\"\n}" },
+            "url": { "raw": "http://localhost:3000/genres", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["genres"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Books",
+      "item": [
+        {
+          "name": "Get All Books (with pagination/filtering)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:3000/books?page=1&limit=10&search=the&genreId=1", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["books"], "query": [
+              { "key": "page", "value": "1" },
+              { "key": "limit", "value": "10" },
+              { "key": "search", "value": "the" },
+              { "key": "genreId", "value": "1" }
+            ] }
+          }
+        },
+        {
+          "name": "Create Book (Librarian Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"New Test Book\",\n  \"author\": \"Test Author\",\n  \"isbn\": \"978-0000000000\",\n  \"totalCopies\": 5,\n  \"genreId\": 1\n}"
+            },
+            "url": { "raw": "http://localhost:3000/books", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["books"] }
+          }
+        }
+      ]
+    }
+  ]
+}

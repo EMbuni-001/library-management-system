@@ -5,6 +5,7 @@ CREATE TYPE "Role" AS ENUM ('PATRON', 'LIBRARIAN');
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
     "name" TEXT,
     "role" "Role" NOT NULL DEFAULT 'PATRON',
 

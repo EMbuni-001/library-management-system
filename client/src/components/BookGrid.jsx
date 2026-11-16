@@ -3,25 +3,34 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import BookCard from './BookCard';
 
-function BookGrid({ genreId, searchQuery, sortBy }) {
+function BookGrid({ genreId, search, sortBy }) {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log('📚 BookGrid useEffect triggered with:', { genreId, search, sortBy });
+    
     const fetchBooks = async () => {
       setLoading(true);
       setError(null);
       try {
         const params = {};
         if (genreId) params.genreId = genreId;
-        if (searchQuery) params.search = searchQuery;
-        params.limit = 50; 
+        if (search) params.search = search;
+        params.limit = 50;
+
+        console.log('📚 Fetching books with params:', params);
+        console.log('📚 Full URL:', `${import.meta.env.VITE_API_URL}/books`);
 
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/books`, { params });
         
-        let fetchedBooks = response.data.data || response.data; 
+        console.log('📚 Response received:', response.data);
         
+        let fetchedBooks = response.data.data || response.data;
+
+        console.log('📚 Extracted books array:', fetchedBooks);
+
         if (sortBy === 'title') {
           fetchedBooks.sort((a, b) => a.title.localeCompare(b.title));
         } else if (sortBy === 'author') {
@@ -30,15 +39,15 @@ function BookGrid({ genreId, searchQuery, sortBy }) {
 
         setBooks(fetchedBooks);
       } catch (err) {
+        console.error('📚 Error fetching books:', err);
         setError('Failed to load books. Please ensure the backend is running.');
-        console.error(err);
       } finally {
         setLoading(false);
       }
     };
 
     fetchBooks();
-  }, [genreId, searchQuery, sortBy]);
+  }, [genreId, search, sortBy]);
 
   if (error) {
     return <div className="text-red-500 p-4 text-center font-medium">{error}</div>;

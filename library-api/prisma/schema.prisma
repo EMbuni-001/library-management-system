@@ -1,3 +1,4 @@
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,44 +8,70 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// The SQL output showed "USER-DEFINED" for the role column, 
+// which means it is a Postgres Enum.
+enum Role {
+  PATRON
+  LIBRARIAN
+}
+
 model User {
-  id      Int      @id @default(autoincrement())
-  email   String   @unique
-  password String
-  name    String?
-  role    Role     @default(PATRON)
-  reviews Review[]
+  id          Int               @id @default(autoincrement())
+  email       String            @unique
+  password    String
+  name        String?
+  role        Role              @default(PATRON)
+  reviews     Review[]
+  readingList ReadingListItem[]
+
+  @@map("User")
+}
+
+model Book {
+  id                Int               @id @default(autoincrement())
+  title             String
+  author            String
+  isbn              String
+  totalCopies       Int
+  availableCopies   Int
+  genreId           Int
+  description       String?
+  coverImage        String?
+  genre             Genre             @relation(fields: [genreId], references: [id])
+  reviews           Review[]
+  readingList       ReadingListItem[]
+
+  @@map("Book")
 }
 
 model Genre {
   id    Int    @id @default(autoincrement())
   name  String @unique
   books Book[]
-}
 
-model Book {
-  id              Int      @id @default(autoincrement())
-  title           String
-  author          String
-  isbn            String   @unique
-  totalCopies     Int      @default(1)
-  availableCopies Int      @default(1)
-  genreId         Int
-  genre           Genre    @relation(fields: [genreId], references: [id])
-  reviews         Review[]
+  @@map("Genre")
 }
 
 model Review {
-  id      Int    @id @default(autoincrement())
-  rating  Int
-  comment String
-  bookId  Int
-  userId  Int
-  book    Book   @relation(fields: [bookId], references: [id])
-  user    User   @relation(fields: [userId], references: [id])
+  id        Int    @id @default(autoincrement())
+  rating    Int
+  comment   String
+  bookId    Int
+  userId    Int
+  book      Book   @relation(fields: [bookId], references: [id])
+  user      User   @relation(fields: [userId], references: [id])
+
+  @@map("Review")
 }
 
-enum Role {
-  PATRON
-  LIBRARIAN
+model ReadingListItem {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  bookId    Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  book      Book     @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+  @@map("ReadingListItem")
 }

@@ -47,6 +47,7 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
 const jwt_1 = require("@nestjs/jwt");
+const client_1 = require("@prisma/client");
 let AuthService = class AuthService {
     prisma;
     jwtService;
@@ -55,9 +56,11 @@ let AuthService = class AuthService {
         this.jwtService = jwtService;
     }
     async register(dto) {
-        const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+        const existingUser = await this.prisma.user.findUnique({
+            where: { email: dto.email },
+        });
         if (existingUser) {
-            throw new common_1.ConflictException('Email already registered');
+            throw new common_1.ConflictException('Email already in use');
         }
         const hashedPassword = await bcrypt.hash(dto.password, 10);
         const user = await this.prisma.user.create({
@@ -65,14 +68,16 @@ let AuthService = class AuthService {
                 email: dto.email,
                 password: hashedPassword,
                 name: dto.name,
-                role: dto.role || 'PATRON',
+                role: dto.role || client_1.Role.PATRON,
             },
         });
         const { password, ...result } = user;
         return result;
     }
     async login(dto) {
-        const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+        const user = await this.prisma.user.findUnique({
+            where: { email: dto.email },
+        });
         if (!user) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
@@ -80,15 +85,12 @@ let AuthService = class AuthService {
         if (!isPasswordValid) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
-        const payload = { sub: user.id, role: user.role };
+        const payload = { sub: user.id, email: user.email, role: user.role };
+        const access_token = this.jwtService.sign(payload);
+        const { password, ...result } = user;
         return {
-            access_token: this.jwtService.sign(payload),
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role
-            },
+            access_token,
+            user: result,
         };
     }
 };

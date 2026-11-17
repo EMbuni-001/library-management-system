@@ -26,12 +26,20 @@ let BooksController = class BooksController {
         this.booksService = booksService;
     }
     findAll(genreId, search, page, limit) {
-        return this.booksService.findAll(genreId, search, page, limit);
+        return this.booksService.findAll(genreId, search, page ? Number(page) : 1, limit ? Number(limit) : 20);
     }
-    findOne(id) { return this.booksService.findOne(+id); }
-    create(dto) { return this.booksService.create(dto); }
-    update(id, dto) { return this.booksService.update(+id, dto); }
-    remove(id) { return this.booksService.remove(+id); }
+    findOne(id) {
+        return this.booksService.findOne(Number(id));
+    }
+    create(createBookDto) {
+        return this.booksService.create(createBookDto);
+    }
+    update(id, updateBookDto) {
+        return this.booksService.update(Number(id), updateBookDto);
+    }
+    remove(id) {
+        return this.booksService.remove(Number(id));
+    }
 };
 exports.BooksController = BooksController;
 __decorate([

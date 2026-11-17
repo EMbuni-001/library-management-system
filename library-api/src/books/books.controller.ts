@@ -12,25 +12,43 @@ export class BooksController {
   constructor(private readonly booksService: BooksService) {}
 
   @Get()
-  findAll(@Query('genreId') genreId?: string, @Query('search') search?: string, @Query('page') page?: string, @Query('limit') limit?: string) {
-    return this.booksService.findAll(genreId, search, page, limit);
+  findAll(
+    @Query('genreId') genreId?: string,
+    @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.booksService.findAll(
+      genreId,
+      search,
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 20,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) { return this.booksService.findOne(+id); }
+  findOne(@Param('id') id: string) {
+    return this.booksService.findOne(Number(id));
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('LIBRARIAN')
-  create(@Body() dto: CreateBookDto) { return this.booksService.create(dto); }
+  create(@Body() createBookDto: CreateBookDto) {
+    return this.booksService.create(createBookDto);
+  }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('LIBRARIAN')
-  update(@Param('id') id: string, @Body() dto: UpdateBookDto) { return this.booksService.update(+id, dto); }
+  update(@Param('id') id: string, @Body() updateBookDto: UpdateBookDto) {
+    return this.booksService.update(Number(id), updateBookDto);
+  }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('LIBRARIAN')
-  remove(@Param('id') id: string) { return this.booksService.remove(+id); }
+  remove(@Param('id') id: string) {
+    return this.booksService.remove(Number(id));
+  }
 }

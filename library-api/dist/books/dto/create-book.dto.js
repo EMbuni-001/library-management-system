@@ -11,40 +11,51 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateBookDto = void 0;
 const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
 class CreateBookDto {
     title;
     author;
     isbn;
+    description;
+    coverImage;
     totalCopies;
+    availableCopies;
     genreId;
 }
 exports.CreateBookDto = CreateBookDto;
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateBookDto.prototype, "title", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateBookDto.prototype, "author", void 0);
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateBookDto.prototype, "isbn", void 0);
 __decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateBookDto.prototype, "description", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateBookDto.prototype, "coverImage", void 0);
+__decorate([
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
-    (0, class_transformer_1.Type)(() => Number),
     __metadata("design:type", Number)
 ], CreateBookDto.prototype, "totalCopies", void 0);
 __decorate([
     (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.Min)(1),
-    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateBookDto.prototype, "availableCopies", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
     __metadata("design:type", Number)
 ], CreateBookDto.prototype, "genreId", void 0);
 //# sourceMappingURL=create-book.dto.js.map

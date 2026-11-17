@@ -5,6 +5,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -14,54 +15,53 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    // 1. Check if user already exists
-    const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
     if (existingUser) {
-      throw new ConflictException('Email already registered');
+      throw new ConflictException('Email already in use');
     }
 
-    // 2. Hash the password securely
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // 3. Create the user in the database
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
         password: hashedPassword,
         name: dto.name,
-        role: dto.role || 'PATRON',
+        // Cast the string to the Prisma Role enum to satisfy TypeScript
+        role: (dto.role as Role) || Role.PATRON,
       },
     });
 
-    // 4. Return user without the password
+    // Return user without the password field
     const { password, ...result } = user;
     return result;
   }
 
   async login(dto: LoginDto) {
-    // 1. Find user by email
-    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 2. Compare provided password with hashed password in DB
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // 3. Generate JWT token
-    const payload = { sub: user.id, role: user.role };
-    
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const access_token = this.jwtService.sign(payload);
+
+    const { password, ...result } = user;
     return {
-      access_token: this.jwtService.sign(payload),
-      user: { 
-        id: user.id, 
-        email: user.email, 
-        name: user.name, 
-        role: user.role 
-      },
+      access_token,
+      user: result,
     };
   }
 }

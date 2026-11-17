@@ -10,14 +10,23 @@ export declare class BooksController {
                 name: string;
                 id: number;
             };
+            reviews: {
+                id: number;
+                rating: number;
+                comment: string;
+                bookId: number;
+                userId: number;
+            }[];
         } & {
             id: number;
             title: string;
             author: string;
             isbn: string;
+            description: string | null;
+            coverImage: string | null;
             totalCopies: number;
-            genreId: number;
             availableCopies: number;
+            genreId: number;
         })[];
         meta: {
             total: number;
@@ -43,35 +52,43 @@ export declare class BooksController {
         title: string;
         author: string;
         isbn: string;
+        description: string | null;
+        coverImage: string | null;
         totalCopies: number;
-        genreId: number;
         availableCopies: number;
+        genreId: number;
     }>;
-    create(dto: CreateBookDto): import(".prisma/client").Prisma.Prisma__BookClient<{
+    create(createBookDto: CreateBookDto): import(".prisma/client").Prisma.Prisma__BookClient<{
         id: number;
         title: string;
         author: string;
         isbn: string;
+        description: string | null;
+        coverImage: string | null;
         totalCopies: number;
-        genreId: number;
         availableCopies: number;
+        genreId: number;
     }, never, import("@prisma/client/runtime/library").DefaultArgs>;
-    update(id: string, dto: UpdateBookDto): Promise<{
+    update(id: string, updateBookDto: UpdateBookDto): import(".prisma/client").Prisma.Prisma__BookClient<{
         id: number;
         title: string;
         author: string;
         isbn: string;
+        description: string | null;
+        coverImage: string | null;
         totalCopies: number;
-        genreId: number;
         availableCopies: number;
-    }>;
-    remove(id: string): Promise<{
+        genreId: number;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
+    remove(id: string): import(".prisma/client").Prisma.Prisma__BookClient<{
         id: number;
         title: string;
         author: string;
         isbn: string;
+        description: string | null;
+        coverImage: string | null;
         totalCopies: number;
-        genreId: number;
         availableCopies: number;
-    }>;
+        genreId: number;
+    }, never, import("@prisma/client/runtime/library").DefaultArgs>;
 }

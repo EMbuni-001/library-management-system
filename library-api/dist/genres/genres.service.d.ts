@@ -14,9 +14,11 @@ export declare class GenresService {
             title: string;
             author: string;
             isbn: string;
+            description: string | null;
+            coverImage: string | null;
             totalCopies: number;
-            genreId: number;
             availableCopies: number;
+            genreId: number;
         }[];
     } & {
         name: string;
@@ -28,9 +30,11 @@ export declare class GenresService {
             title: string;
             author: string;
             isbn: string;
+            description: string | null;
+            coverImage: string | null;
             totalCopies: number;
-            genreId: number;
             availableCopies: number;
+            genreId: number;
         }[];
     } & {
         name: string;

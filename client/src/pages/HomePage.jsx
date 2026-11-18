@@ -12,9 +12,10 @@ function HomePage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-teal-700 dark:text-teal-400 sm:text-3xl">
+          Library catalog
         </h1>
-        <p className="mt-2 text-sm text-slate-600 sm:text-base">
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 sm:text-base">
           Search the collection, filter by genre and save titles to your
           reading list.
         </p>
@@ -40,7 +41,7 @@ function HomePage() {
             id="sort-control"
             value={sortBy}
             onChange={(event) => setSortBy(event.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 transition-colors duration-200 hover:border-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 transition-colors duration-200 hover:border-teal-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-teal-500 dark:focus:ring-teal-800"
           >
             <option value="">Sort by...</option>
             <option value="title">Title (A to Z)</option>

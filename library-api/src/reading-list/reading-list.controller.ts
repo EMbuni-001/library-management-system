@@ -1,30 +1,68 @@
 
-import { Controller, Get, Post, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Request,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { ReadingListService } from './reading-list.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+
+// The JWT payload can expose the member id under different keys
+// depending on the strategy. Declaring the shape here keeps
+// TypeScript strict mode satisfied without using "any".
+interface AuthenticatedRequest {
+  user?: {
+    userId?: number;
+    sub?: number;
+    id?: number;
+  };
+}
+
+function resolveUserId(request: AuthenticatedRequest): number {
+  const rawId = request.user?.userId ?? request.user?.sub ?? request.user?.id;
+
+  if (rawId === undefined || rawId === null) {
+    throw new UnauthorizedException('No member id found in the token.');
+  }
+
+  return Number(rawId);
+}
 
 @Controller('reading-list')
 @UseGuards(JwtAuthGuard)
 export class ReadingListController {
-  constructor(private readingListService: ReadingListService) {}
+  constructor(private readonly readingListService: ReadingListService) {}
 
   @Get()
-  findAll(@Request() req: any) {
-    return this.readingListService.findAll(req.user.userId);
+  findAll(@Request() request: AuthenticatedRequest) {
+    return this.readingListService.findAll(resolveUserId(request));
   }
 
   @Post()
-  addBook(@Request() req: any, @Body() body: { bookId: number }) {
-    return this.readingListService.addBook(req.user.userId, body.bookId);
+  addBook(
+    @Request() request: AuthenticatedRequest,
+    @Body('bookId', ParseIntPipe) bookId: number,
+  ) {
+    return this.readingListService.addBook(resolveUserId(request), bookId);
   }
 
   @Delete(':bookId')
-  removeBook(@Request() req: any, @Param('bookId') bookId: string) {
-    return this.readingListService.removeBook(req.user.userId, Number(bookId));
+  removeBook(
+    @Request() request: AuthenticatedRequest,
+    @Param('bookId', ParseIntPipe) bookId: number,
+  ) {
+    return this.readingListService.removeBook(resolveUserId(request), bookId);
   }
 
   @Delete()
-  clearList(@Request() req: any) {
-    return this.readingListService.clearList(req.user.userId);
+  clearList(@Request() request: AuthenticatedRequest) {
+    return this.readingListService.clearList(resolveUserId(request));
   }
 }

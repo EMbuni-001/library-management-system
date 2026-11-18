@@ -1,10 +1,11 @@
 
 import { Module } from '@nestjs/common';
-import { ReadingListService } from './reading-list.service';
 import { ReadingListController } from './reading-list.controller';
+import { ReadingListService } from './reading-list.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
   controllers: [ReadingListController],
-  providers: [ReadingListService],
+  providers: [ReadingListService, PrismaService],
 })
 export class ReadingListModule {}

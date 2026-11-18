@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { GenresModule } from './genres/genres.module';
 import { BooksModule } from './books/books.module';
 import { UsersModule } from './users/users.module';
+import { ReadingListModule } from './reading-list/reading-list.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UsersModule } from './users/users.module';
     GenresModule,
     BooksModule,
     UsersModule,
+    ReadingListModule, // <-- ADDED: Registers the reading list endpoints
   ],
   providers: [
     // Apply ThrottlerGuard globally to all routes

@@ -8,13 +8,12 @@ async function bootstrap() {
     app.enableCors();
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
-        forbidNonWhitelisted: true,
         transform: true,
     }));
     const port = process.env.PORT || 3000;
     await app.listen(port);
-    console.log(`\n✅ Library API is running on: http://localhost:${port}`);
-    console.log(`📚 Frontend should connect from: http://localhost:5173\n`);
+    console.log(`Library API is running on http://localhost:${port}`);
+    console.log('Expected frontend origin: http://localhost:5173');
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

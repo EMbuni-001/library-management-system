@@ -1,15 +1,19 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../utils/api';
+import axios from 'axios';
 import { getMillisecondsUntilExpiry } from '../utils/jwt';
 import { mergeGuestListIntoUser } from '../utils/readingListStorage';
 import { useToast } from './ToastContext';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const TOKEN_KEY = 'lms.token';
+const USER_KEY = 'lms.user';
 
 const AuthContext = createContext(null);
 
 function readStoredToken() {
   try {
-    return window.localStorage.getItem('lms.token') || '';
+    return window.localStorage.getItem(TOKEN_KEY) || '';
   } catch (error) {
     return '';
   }
@@ -17,7 +21,7 @@ function readStoredToken() {
 
 function readStoredUser() {
   try {
-    const raw = window.localStorage.getItem('lms.user');
+    const raw = window.localStorage.getItem(USER_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch (error) {
     return null;
@@ -35,14 +39,22 @@ function getApiErrorMessage(error, fallback) {
     if (typeof message === 'string' && message.trim() !== '') {
       return message;
     }
-    if (status === 401) return 'Email or password is incorrect.';
-    if (status === 409) return 'An account with that email already exists.';
-    if (status === 429) return 'Too many attempts. Please wait a minute.';
+    if (status === 401) {
+      return 'Email or password is incorrect.';
+    }
+    if (status === 409) {
+      return 'An account with that email already exists.';
+    }
+    if (status === 429) {
+      return 'Too many attempts. Please wait a minute.';
+    }
     return 'The server could not complete that request.';
   }
+
   if (error.request) {
     return 'Cannot reach the server. Confirm the API is running.';
   }
+
   return fallback;
 }
 
@@ -53,8 +65,8 @@ export function AuthProvider({ children }) {
 
   function persistSession(nextToken, nextUser) {
     try {
-      window.localStorage.setItem('lms.token', nextToken);
-      window.localStorage.setItem('lms.user', JSON.stringify(nextUser));
+      window.localStorage.setItem(TOKEN_KEY, nextToken);
+      window.localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
     } catch (error) {
       // Session works in memory even if storage fails
     }
@@ -62,7 +74,6 @@ export function AuthProvider({ children }) {
     setUser(nextUser);
   }
 
-  // Monitor JWT expiry and auto-logout
   useEffect(() => {
     if (!token) return;
 
@@ -84,12 +95,13 @@ export function AuthProvider({ children }) {
 
   async function login(credentials) {
     try {
-      const response = await api.post('/auth/login', {
+      const response = await axios.post(`${API_URL}/auth/login`, {
         email: credentials.email.trim(),
         password: credentials.password,
       });
 
       const accessToken = response.data?.access_token || response.data?.token || '';
+
       if (!accessToken) {
         return { ok: false, message: 'The server did not return a token.' };
       }
@@ -113,7 +125,7 @@ export function AuthProvider({ children }) {
     };
 
     try {
-      const response = await api.post('/auth/register', payload);
+      const response = await axios.post(`${API_URL}/auth/register`, payload);
       const accessToken = response.data?.access_token || response.data?.token || '';
 
       if (accessToken) {
@@ -123,29 +135,41 @@ export function AuthProvider({ children }) {
           name: response.data?.name,
           role: response.data?.role,
         };
+
         mergeGuestListIntoUser(profile?.id);
         persistSession(accessToken, profile);
         addToast('Account created successfully!', 'success');
+
         return { ok: true, user: profile };
       }
 
-      // Fallback: API returned user but no token, so we log in immediately
-      const loginResult = await login({ email: payload.email, password: payload.password });
+      const loginResult = await login({
+        email: payload.email,
+        password: payload.password,
+      });
+
       if (loginResult.ok) {
         addToast('Account created and logged in!', 'success');
         return loginResult;
       }
 
-      return { ok: false, redirectToLogin: true, message: 'Account created. Please log in.' };
+      return {
+        ok: false,
+        redirectToLogin: true,
+        message: 'Account created. Please log in.',
+      };
     } catch (error) {
-      return { ok: false, message: getApiErrorMessage(error, 'Could not create your account.') };
+      return {
+        ok: false,
+        message: getApiErrorMessage(error, 'Could not create your account.'),
+      };
     }
   }
 
   function logout() {
     try {
-      window.localStorage.removeItem('lms.token');
-      window.localStorage.removeItem('lms.user');
+      window.localStorage.removeItem(TOKEN_KEY);
+      window.localStorage.removeItem(USER_KEY);
     } catch (error) {
       // Ignore storage errors
     }

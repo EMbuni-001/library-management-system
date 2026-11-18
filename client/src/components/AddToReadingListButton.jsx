@@ -4,7 +4,9 @@ import { useReadingList } from '../context/ReadingListContext';
 function AddToReadingListButton({ book, className = '' }) {
   const { addBook, removeBook, isInList } = useReadingList();
 
-  if (!book || book.id === undefined) return null;
+  if (!book || book.id === undefined) {
+    return null;
+  }
 
   const saved = isInList(book.id);
 
@@ -16,16 +18,26 @@ function AddToReadingListButton({ book, className = '' }) {
     }
   }
 
-  const base = 'inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
-  const savedStyles = 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/50';
-  const unsavedStyles = 'bg-slate-900 dark:bg-slate-700 text-white border border-slate-900 dark:border-slate-700 hover:bg-slate-700 dark:hover:bg-slate-600';
+  const base =
+    'inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800';
+
+  // A saved book uses a quiet confirmation style; an unsaved book uses
+  // the solid primary accent so the main action stands out.
+  const savedStyles =
+    'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 focus-visible:ring-emerald-500 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50';
+  const unsavedStyles =
+    'border-teal-600 bg-teal-600 text-white hover:border-teal-700 hover:bg-teal-700 focus-visible:ring-teal-500 dark:border-teal-500 dark:bg-teal-500 dark:hover:border-teal-600 dark:hover:bg-teal-600';
 
   return (
     <button
       type="button"
       onClick={handleClick}
       aria-pressed={saved}
-      aria-label={saved ? `Remove ${book.title} from your reading list` : `Add ${book.title} to your reading list`}
+      aria-label={
+        saved
+          ? `Remove ${book.title} from your reading list`
+          : `Add ${book.title} to your reading list`
+      }
       className={`${base} ${saved ? savedStyles : unsavedStyles} ${className}`}
     >
       {saved ? 'In reading list' : 'Add to reading list'}

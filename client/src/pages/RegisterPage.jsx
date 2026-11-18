@@ -3,7 +3,13 @@ import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const EMPTY_FORM = { name: '', email: '', password: '', confirmPassword: '' };
+const EMPTY_FORM = {
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+};
+
 const MIN_PASSWORD_LENGTH = 8;
 
 function RegisterPage() {
@@ -22,6 +28,7 @@ function RegisterPage() {
 
   function handleChange(event) {
     const { name, value } = event.target;
+
     setForm((previous) => ({ ...previous, [name]: value }));
     setFieldErrors((previous) => ({ ...previous, [name]: '' }));
     setServerError('');
@@ -64,6 +71,7 @@ function RegisterPage() {
 
     const errors = validate();
     setFieldErrors(errors);
+
     if (Object.keys(errors).length > 0) {
       return;
     }
@@ -71,6 +79,8 @@ function RegisterPage() {
     setSubmitting(true);
     setServerError('');
 
+    // confirmPassword is a screen-only check, so it is deliberately
+    // left out of the request body.
     const result = await register({
       name: form.name,
       email: form.email,
@@ -93,11 +103,11 @@ function RegisterPage() {
   }
 
   const inputBase =
-    'w-full rounded-lg border bg-white dark:bg-slate-800 px-3 py-2 text-slate-900 dark:text-slate-100 placeholder-slate-400 transition-colors duration-200 focus:outline-none focus:ring-2';
+    'w-full rounded-lg border bg-white px-3 py-2 text-slate-900 placeholder-slate-400 transition-colors duration-200 focus:outline-none focus:ring-2 dark:bg-slate-800 dark:text-slate-100';
   const inputNormal =
-    'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800';
+    'border-slate-300 hover:border-teal-400 focus:border-teal-500 focus:ring-teal-200 dark:border-slate-600 dark:hover:border-teal-500 dark:focus:ring-teal-800';
   const inputError =
-    'border-red-400 focus:border-red-500 focus:ring-red-200';
+    'border-red-400 focus:border-red-500 focus:ring-red-200 dark:focus:ring-red-900';
 
   function inputClass(fieldName) {
     return `${inputBase} ${fieldErrors[fieldName] ? inputError : inputNormal}`;
@@ -105,8 +115,8 @@ function RegisterPage() {
 
   return (
     <div className="mx-auto w-full max-w-md px-4 py-10 sm:px-6 sm:py-14">
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm sm:p-8 transition-colors duration-200">
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 sm:text-3xl">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors duration-200 dark:border-slate-700 dark:bg-slate-800 sm:p-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-teal-700 dark:text-teal-400 sm:text-3xl">
           Create your account
         </h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
@@ -116,7 +126,7 @@ function RegisterPage() {
         {serverError && (
           <div
             role="alert"
-            className="mt-6 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-700 dark:text-red-300"
+            className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-300"
           >
             {serverError}
           </div>
@@ -124,7 +134,10 @@ function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
               Full name
             </label>
             <input
@@ -140,14 +153,20 @@ function RegisterPage() {
               className={`mt-1 ${inputClass('name')}`}
             />
             {fieldErrors.name && (
-              <p id="name-error" className="mt-1 text-sm text-red-600 dark:text-red-400">
+              <p
+                id="name-error"
+                className="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
                 {fieldErrors.name}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
               Email address
             </label>
             <input
@@ -163,14 +182,20 @@ function RegisterPage() {
               className={`mt-1 ${inputClass('email')}`}
             />
             {fieldErrors.email && (
-              <p id="email-error" className="mt-1 text-sm text-red-600 dark:text-red-400">
+              <p
+                id="email-error"
+                className="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
                 {fieldErrors.email}
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
               Password
             </label>
             <div className="relative mt-1">
@@ -183,30 +208,41 @@ function RegisterPage() {
                 value={form.password}
                 onChange={handleChange}
                 aria-invalid={Boolean(fieldErrors.password)}
-                aria-describedby={fieldErrors.password ? 'password-error' : 'password-hint'}
+                aria-describedby={
+                  fieldErrors.password ? 'password-error' : 'password-hint'
+                }
                 className={`${inputClass('password')} pr-20`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((visible) => !visible)}
-                className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-500 dark:text-slate-400 transition-colors duration-200 hover:text-slate-800 dark:hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                className="absolute inset-y-0 right-0 px-3 text-xs font-medium text-slate-500 transition-colors duration-200 hover:text-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 dark:text-slate-400 dark:hover:text-teal-300"
               >
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
             {fieldErrors.password ? (
-              <p id="password-error" className="mt-1 text-sm text-red-600 dark:text-red-400">
+              <p
+                id="password-error"
+                className="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
                 {fieldErrors.password}
               </p>
             ) : (
-              <p id="password-hint" className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <p
+                id="password-hint"
+                className="mt-1 text-xs text-slate-500 dark:text-slate-400"
+              >
                 Use at least {MIN_PASSWORD_LENGTH} characters.
               </p>
             )}
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
               Confirm password
             </label>
             <input
@@ -218,11 +254,16 @@ function RegisterPage() {
               value={form.confirmPassword}
               onChange={handleChange}
               aria-invalid={Boolean(fieldErrors.confirmPassword)}
-              aria-describedby={fieldErrors.confirmPassword ? 'confirm-error' : undefined}
+              aria-describedby={
+                fieldErrors.confirmPassword ? 'confirm-error' : undefined
+              }
               className={`mt-1 ${inputClass('confirmPassword')}`}
             />
             {fieldErrors.confirmPassword && (
-              <p id="confirm-error" className="mt-1 text-sm text-red-600 dark:text-red-400">
+              <p
+                id="confirm-error"
+                className="mt-1 text-sm text-red-600 dark:text-red-400"
+              >
                 {fieldErrors.confirmPassword}
               </p>
             )}
@@ -231,7 +272,7 @@ function RegisterPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-indigo-300"
+            className="w-full rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-teal-300 dark:bg-teal-500 dark:hover:bg-teal-600 dark:disabled:bg-teal-800 dark:focus-visible:ring-offset-slate-800"
           >
             {submitting ? 'Creating account...' : 'Create account'}
           </button>
@@ -241,7 +282,7 @@ function RegisterPage() {
           Already a member?{' '}
           <Link
             to="/login"
-            className="font-medium text-indigo-600 dark:text-indigo-400 underline-offset-2 transition-colors duration-200 hover:text-indigo-800 dark:hover:text-indigo-300 hover:underline"
+            className="font-medium text-teal-700 underline-offset-2 transition-colors duration-200 hover:text-teal-800 hover:underline dark:text-teal-400 dark:hover:text-teal-300"
           >
             Log in
           </Link>

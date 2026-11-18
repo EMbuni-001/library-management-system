@@ -66,7 +66,7 @@ export function ReadingListProvider({ children }) {
 
   useEffect(() => {
     if (hydratedKey !== storageKey) return;
-    if (token && userId) return; // Backend handles persistence for logged-in users
+    if (token && userId) return;
     saveList(storageKey, readingList);
   }, [storageKey, hydratedKey, readingList, token, userId]);
 

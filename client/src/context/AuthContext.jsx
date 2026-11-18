@@ -1,19 +1,15 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { getMillisecondsUntilExpiry } from '../utils/jwt';
 import { mergeGuestListIntoUser } from '../utils/readingListStorage';
 import { useToast } from './ToastContext';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-const TOKEN_KEY = 'lms.token';
-const USER_KEY = 'lms.user';
 
 const AuthContext = createContext(null);
 
 function readStoredToken() {
   try {
-    return window.localStorage.getItem(TOKEN_KEY) || '';
+    return window.localStorage.getItem('lms.token') || '';
   } catch (error) {
     return '';
   }
@@ -21,7 +17,7 @@ function readStoredToken() {
 
 function readStoredUser() {
   try {
-    const raw = window.localStorage.getItem(USER_KEY);
+    const raw = window.localStorage.getItem('lms.user');
     return raw ? JSON.parse(raw) : null;
   } catch (error) {
     return null;
@@ -65,8 +61,8 @@ export function AuthProvider({ children }) {
 
   function persistSession(nextToken, nextUser) {
     try {
-      window.localStorage.setItem(TOKEN_KEY, nextToken);
-      window.localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
+      window.localStorage.setItem('lms.token', nextToken);
+      window.localStorage.setItem('lms.user', JSON.stringify(nextUser));
     } catch (error) {
       // Session works in memory even if storage fails
     }
@@ -95,7 +91,7 @@ export function AuthProvider({ children }) {
 
   async function login(credentials) {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
+      const response = await api.post('/auth/login', {
         email: credentials.email.trim(),
         password: credentials.password,
       });
@@ -125,7 +121,7 @@ export function AuthProvider({ children }) {
     };
 
     try {
-      const response = await axios.post(`${API_URL}/auth/register`, payload);
+      const response = await api.post('/auth/register', payload);
       const accessToken = response.data?.access_token || response.data?.token || '';
 
       if (accessToken) {
@@ -168,8 +164,8 @@ export function AuthProvider({ children }) {
 
   function logout() {
     try {
-      window.localStorage.removeItem(TOKEN_KEY);
-      window.localStorage.removeItem(USER_KEY);
+      window.localStorage.removeItem('lms.token');
+      window.localStorage.removeItem('lms.user');
     } catch (error) {
       // Ignore storage errors
     }

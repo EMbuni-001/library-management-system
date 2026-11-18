@@ -4,6 +4,25 @@ import { Link, useParams } from 'react-router-dom';
 import api from '../utils/api';
 import AddToReadingListButton from '../components/AddToReadingListButton';
 
+// Helper function to render star icons based on the numeric rating
+function renderStars(rating) {
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    stars.push(
+      <span
+        key={i}
+        className={`text-lg ${
+          i <= rating ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'
+        }`}
+        aria-hidden="true"
+      >
+        ★
+      </span>
+    );
+  }
+  return stars;
+}
+
 function BookDetail() {
   const { id } = useParams();
   const [book, setBook] = useState(null);
@@ -72,6 +91,25 @@ function BookDetail() {
     );
   }
 
+  // BULLETPROOF DEDUPLICATION:
+  // 1. Ensure reviews is an array (prevents crashes if undefined/null).
+  // 2. Use a Set to track seen userIds. This guarantees a user only appears 
+  //    once per book, even if the backend accidentally created duplicate rows.
+  const reviewsArray = Array.isArray(book.reviews) ? book.reviews : [];
+  
+  const seenUsers = new Set();
+  const uniqueReviews = reviewsArray.filter((review) => {
+    // Deduplicate primarily by userId. Fallback to review.id if userId is missing.
+    const uniqueKey = review.userId || review.id;
+    
+    if (seenUsers.has(uniqueKey)) {
+      return false; // Skip this duplicate
+    }
+    
+    seenUsers.add(uniqueKey);
+    return true; // Keep the first occurrence
+  });
+
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
       <Link
@@ -134,23 +172,26 @@ function BookDetail() {
           <AddToReadingListButton book={book} className="w-full sm:w-auto" />
         </div>
 
-        {book.reviews && book.reviews.length > 0 && (
+        {uniqueReviews.length > 0 && (
           <section className="mt-10 border-t border-slate-100 pt-6 dark:border-slate-700">
             <h2 className="text-lg font-semibold text-teal-700 dark:text-teal-400">
               Reviews
             </h2>
             <ul className="mt-4 space-y-4">
-              {book.reviews.map((review) => (
+              {uniqueReviews.map((review) => (
                 <li
-                  key={review.id}
+                  key={review.id || review.userId}
                   className="rounded-xl border border-slate-100 bg-slate-50 p-4 transition-colors duration-200 dark:border-slate-700 dark:bg-slate-900/40"
                 >
-                  <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                    {review.rating} out of 5
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex">{renderStars(review.rating)}</div>
+                    <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                      ({review.rating}/5)
+                    </span>
+                  </div>
                   {review.comment && (
                     <p className="mt-2 text-sm italic text-slate-700 dark:text-slate-300">
-                      {review.comment}
+                      "{review.comment}"
                     </p>
                   )}
                 </li>

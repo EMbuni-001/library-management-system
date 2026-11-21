@@ -3,8 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Drains the toast progress bar over its lifetime so the visitor can
-   see how long the message will stay on screen. */
 @keyframes shrink {
   from {
     width: 100%;
@@ -24,9 +22,53 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Native date and time pickers inherit the surrounding text colour,
-   which keeps them readable when the dark class is active. */
 .dark input[type='date'],
 .dark input[type='time'] {
   color-scheme: dark;
+}
+
+/* Print styles: hide navigation, buttons, and decorative elements
+   when the user prints the page. Format content for clean paper output. */
+@media print {
+  /* Hide interactive and decorative elements */
+  nav,
+  footer,
+  button,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Remove shadows and background colors for clean printing */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Ensure text is black on white for printing */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Remove page margins for maximum content space */
+  @page {
+    margin: 1cm;
+  }
+
+  /* Prevent awkward page breaks inside elements */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+
+  a {
+    text-decoration: underline;
+    color: black !important;
+  }
+
+  /* Show link URLs after links for reference */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
 }

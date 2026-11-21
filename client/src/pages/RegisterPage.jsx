@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import PasswordStrengthIndicator from '../components/PasswordStrengthIndicator';
 
 function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -16,7 +17,6 @@ function RegisterPage() {
   const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   if (isAuthenticated) {
     navigate('/', { replace: true });
     return null;
@@ -30,7 +30,6 @@ function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Please fill in all fields');
       return;
@@ -72,7 +71,10 @@ function RegisterPage() {
         </h1>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded text-sm">
+          <div
+            role="alert"
+            className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded text-sm"
+          >
             {error}
           </div>
         )}
@@ -89,6 +91,7 @@ function RegisterPage() {
               value={formData.name}
               onChange={handleChange}
               required
+              autoComplete="name"
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors duration-200"
             />
           </div>
@@ -104,6 +107,7 @@ function RegisterPage() {
               value={formData.email}
               onChange={handleChange}
               required
+              autoComplete="email"
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors duration-200"
             />
           </div>
@@ -121,6 +125,8 @@ function RegisterPage() {
                 onChange={handleChange}
                 required
                 minLength={8}
+                autoComplete="new-password"
+                aria-describedby="password-hint"
                 className="w-full px-3 py-2 pr-16 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors duration-200"
               />
               <button
@@ -131,7 +137,8 @@ function RegisterPage() {
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <PasswordStrengthIndicator password={formData.password} />
+            <p id="password-hint" className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               Must be at least 8 characters
             </p>
           </div>
@@ -147,8 +154,14 @@ function RegisterPage() {
               value={formData.confirmPassword}
               onChange={handleChange}
               required
+              autoComplete="new-password"
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors duration-200"
             />
+            {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                Passwords do not match
+              </p>
+            )}
           </div>
 
           <button

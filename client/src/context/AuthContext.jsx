@@ -1,190 +1,130 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import api from '../utils/api';
-import { getMillisecondsUntilExpiry } from '../utils/jwt';
-import { mergeGuestListIntoUser } from '../utils/readingListStorage';
+import axios from 'axios';
 import { useToast } from './ToastContext';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-function readStoredToken() {
-  try {
-    return window.localStorage.getItem('lms.token') || '';
-  } catch (error) {
-    return '';
-  }
-}
-
-function readStoredUser() {
-  try {
-    const raw = window.localStorage.getItem('lms.user');
-    return raw ? JSON.parse(raw) : null;
-  } catch (error) {
-    return null;
-  }
-}
-
-function getApiErrorMessage(error, fallback) {
-  if (error.response) {
-    const status = error.response.status;
-    const message = error.response.data?.message;
-
-    if (Array.isArray(message)) {
-      return message.join(' ');
-    }
-    if (typeof message === 'string' && message.trim() !== '') {
-      return message;
-    }
-    if (status === 401) {
-      return 'Email or password is incorrect.';
-    }
-    if (status === 409) {
-      return 'An account with that email already exists.';
-    }
-    if (status === 429) {
-      return 'Too many attempts. Please wait a minute.';
-    }
-    return 'The server could not complete that request.';
-  }
-
-  if (error.request) {
-    return 'Cannot reach the server. Confirm the API is running.';
-  }
-
-  return fallback;
-}
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const TOKEN_KEY = 'lms.token';
+const USER_KEY = 'lms.user';
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(readStoredToken);
-  const [user, setUser] = useState(readStoredUser);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const { addToast } = useToast();
 
-  function persistSession(nextToken, nextUser) {
-    try {
-      window.localStorage.setItem('lms.token', nextToken);
-      window.localStorage.setItem('lms.user', JSON.stringify(nextUser));
-    } catch (error) {
-      // Session works in memory even if storage fails
-    }
-    setToken(nextToken);
-    setUser(nextUser);
-  }
-
+  // Restore session from localStorage on mount
   useEffect(() => {
-    if (!token) return;
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    const storedUser = localStorage.getItem(USER_KEY);
 
-    const msUntilExpiry = getMillisecondsUntilExpiry(token);
-
-    if (msUntilExpiry === 0) {
-      logout();
-      addToast('Your session has expired. Please log in again.', 'info');
-      return;
+    if (storedToken && storedUser) {
+      try {
+        setToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        // Corrupted data, clear it
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+      }
     }
+  }, []);
 
-    const timeoutId = setTimeout(() => {
-      logout();
-      addToast('Your session has expired. Please log in again.', 'info');
-    }, msUntilExpiry);
-
-    return () => clearTimeout(timeoutId);
-  }, [token, addToast]);
-
-  async function login(credentials) {
+  const login = async (credentials) => {
     try {
-      const response = await api.post('/auth/login', {
+      const response = await axios.post(`${API_URL}/auth/login`, {
         email: credentials.email.trim(),
         password: credentials.password,
       });
 
-      const accessToken = response.data?.access_token || response.data?.token || '';
+      const accessToken = response.data?.access_token || response.data?.token;
+      const userData = response.data?.user;
 
       if (!accessToken) {
-        return { ok: false, message: 'The server did not return a token.' };
+        return { ok: false, message: 'Server did not return a token' };
       }
 
-      const profile = response.data?.user || null;
-      mergeGuestListIntoUser(profile?.id);
-      persistSession(accessToken, profile);
+      localStorage.setItem(TOKEN_KEY, accessToken);
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+
+      setToken(accessToken);
+      setUser(userData);
+
       addToast('Welcome back!', 'success');
-
-      return { ok: true, user: profile };
+      return { ok: true };
     } catch (error) {
-      return { ok: false, message: getApiErrorMessage(error, 'Could not log in.') };
+      const message = error.response?.data?.message || 'Login failed';
+      return { ok: false, message };
     }
-  }
+  };
 
-  async function register(details) {
-    const payload = {
-      name: details.name.trim(),
-      email: details.email.trim(),
-      password: details.password,
-    };
-
+  const register = async (userData) => {
     try {
-      const response = await api.post('/auth/register', payload);
-      const accessToken = response.data?.access_token || response.data?.token || '';
+      const response = await axios.post(`${API_URL}/auth/register`, {
+        name: userData.name.trim(),
+        email: userData.email.trim(),
+        password: userData.password,
+      });
 
+      const accessToken = response.data?.access_token || response.data?.token;
+      const newUser = response.data?.user;
+
+      // If backend returns token, store it
       if (accessToken) {
-        const profile = response.data?.user || {
-          id: response.data?.id,
-          email: response.data?.email,
-          name: response.data?.name,
-          role: response.data?.role,
-        };
+        localStorage.setItem(TOKEN_KEY, accessToken);
+        localStorage.setItem(USER_KEY, JSON.stringify(newUser));
 
-        mergeGuestListIntoUser(profile?.id);
-        persistSession(accessToken, profile);
+        setToken(accessToken);
+        setUser(newUser);
+
         addToast('Account created successfully!', 'success');
-
-        return { ok: true, user: profile };
+        return { ok: true };
       }
 
+      // If no token, auto-login
       const loginResult = await login({
-        email: payload.email,
-        password: payload.password,
+        email: userData.email,
+        password: userData.password,
       });
 
       if (loginResult.ok) {
         addToast('Account created and logged in!', 'success');
-        return loginResult;
       }
 
-      return {
-        ok: false,
-        redirectToLogin: true,
-        message: 'Account created. Please log in.',
-      };
+      return loginResult;
     } catch (error) {
-      return {
-        ok: false,
-        message: getApiErrorMessage(error, 'Could not create your account.'),
-      };
+      const message = error.response?.data?.message || 'Registration failed';
+      return { ok: false, message };
     }
-  }
+  };
 
-  function logout() {
-    try {
-      window.localStorage.removeItem('lms.token');
-      window.localStorage.removeItem('lms.user');
-    } catch (error) {
-      // Ignore storage errors
-    }
-    setToken('');
+  const logout = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    setToken(null);
     setUser(null);
-    addToast('You have been logged out.', 'info');
-  }
+    addToast('You have been logged out', 'info');
+  };
 
-  return (
-    <AuthContext.Provider value={{ token, user, isAuthenticated: Boolean(token), login, register, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    token,
+    isAuthenticated: !!token,
+    login,
+    register,
+    logout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === null) {
-    throw new Error('useAuth must be used inside an AuthProvider.');
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 }
+
+export default AuthContext;

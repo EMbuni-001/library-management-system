@@ -1,53 +1,13 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useReadingList } from '../context/ReadingListContext';
-import api from '../utils/api';
 
 function ReadingListPage() {
   const { readingList, removeBook, clearList } = useReadingList();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [confirmingClear, setConfirmingClear] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [syncedBooks, setSyncedBooks] = useState(null);
-
-  // For logged-in users, fetch the backend reading list to ensure consistency
-  useEffect(() => {
-    if (!token || !isAuthenticated) {
-      setSyncedBooks(null);
-      return;
-    }
-
-    let active = true;
-    setLoading(true);
-
-    api
-      .get('/reading-list')
-      .then((response) => {
-        if (active) {
-          setSyncedBooks(response.data);
-        }
-      })
-      .catch(() => {
-        // Fall back to localStorage list on error
-        if (active) {
-          setSyncedBooks(null);
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [token, isAuthenticated, readingList]);
-
-  // Use synced books if available, otherwise fall back to localStorage list
-  const displayList = syncedBooks !== null ? syncedBooks : readingList;
 
   function handleClear() {
     clearList();
@@ -62,13 +22,13 @@ function ReadingListPage() {
             Your reading list
           </h1>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 sm:text-base print:text-slate-700">
-            {displayList.length === 0
+            {readingList.length === 0
               ? 'Nothing saved yet.'
-              : `${displayList.length} book${displayList.length > 1 ? 's' : ''} saved.`}
+              : `${readingList.length} book${readingList.length > 1 ? 's' : ''} saved.`}
           </p>
         </div>
 
-        {displayList.length > 0 && !loading && (
+        {readingList.length > 0 && (
           <div className="flex flex-wrap gap-3 print:hidden">
             {confirmingClear ? (
               <>
@@ -100,7 +60,7 @@ function ReadingListPage() {
         )}
       </header>
 
-      {!isAuthenticated && displayList.length > 0 && (
+      {!isAuthenticated && readingList.length > 0 && (
         <div className="mb-8 rounded-md border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-900 dark:border-teal-800 dark:bg-teal-900/30 dark:text-teal-200 print:hidden">
           This list is saved on this device only.{' '}
           <Link
@@ -113,19 +73,7 @@ function ReadingListPage() {
         </div>
       )}
 
-      {loading ? (
-        <div className="space-y-4" aria-busy="true" aria-live="polite">
-          {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5"
-            >
-              <div className="h-5 w-2/3 rounded bg-slate-200 dark:bg-slate-700" />
-              <div className="mt-3 h-4 w-1/2 rounded bg-slate-200 dark:bg-slate-700" />
-            </div>
-          ))}
-        </div>
-      ) : displayList.length === 0 ? (
+      {readingList.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-6 py-16 text-center print:border-solid print:border-black">
           <h2 className="text-lg font-semibold text-teal-700 dark:text-teal-400 print:text-black">
             Your list is empty
@@ -143,7 +91,7 @@ function ReadingListPage() {
         </div>
       ) : (
         <ul className="space-y-4 print:space-y-2">
-          {displayList.map((book) => (
+          {readingList.map((book) => (
             <li
               key={book.id}
               className="flex flex-col gap-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition-colors duration-200 sm:flex-row sm:items-center sm:justify-between print:border-b print:border-slate-300 print:shadow-none print:p-3"
@@ -183,7 +131,7 @@ function ReadingListPage() {
         </ul>
       )}
 
-      {displayList.length > 0 && !loading && (
+      {readingList.length > 0 && (
         <div className="mt-8 flex flex-col gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-5 transition-colors duration-200 sm:flex-row sm:items-center sm:justify-between print:hidden">
           <p className="text-sm text-slate-700 dark:text-slate-300">
             Ready to reserve somewhere to read?
@@ -197,7 +145,7 @@ function ReadingListPage() {
         </div>
       )}
 
-      {displayList.length > 0 && !loading && (
+      {readingList.length > 0 && (
         <div className="mt-6 text-center print:block hidden">
           <p className="text-xs text-slate-500">
             Generated on {new Date().toLocaleDateString('en-GB')}

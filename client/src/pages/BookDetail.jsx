@@ -3,16 +3,19 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import api from '../utils/api';
 import AddToReadingListButton from '../components/AddToReadingListButton';
+import Breadcrumb from '../components/Breadcrumb';
+import { useRecentlyViewed } from '../context/RecentlyViewedContext';
 
-// Helper function to render star icons based on the numeric rating
 function renderStars(rating) {
   const stars = [];
+  const numericRating = Number(rating) || 0;
+
   for (let i = 1; i <= 5; i++) {
     stars.push(
       <span
         key={i}
         className={`text-lg ${
-          i <= rating ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'
+          i <= numericRating ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'
         }`}
         aria-hidden="true"
       >
@@ -25,13 +28,12 @@ function renderStars(rating) {
 
 function BookDetail() {
   const { id } = useParams();
+  const { addRecentlyViewed } = useRecentlyViewed();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // If the visitor clicks between books quickly, this flag lets us
-    // ignore the response from the request we no longer care about.
     let active = true;
 
     async function fetchBook() {
@@ -43,6 +45,13 @@ function BookDetail() {
 
         if (active) {
           setBook(response.data);
+          // Track this book as recently viewed
+          addRecentlyViewed({
+            id: response.data.id,
+            title: response.data.title,
+            author: response.data.author,
+            coverImage: response.data.coverImage,
+          });
         }
       } catch (err) {
         if (active) {
@@ -61,12 +70,13 @@ function BookDetail() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, addRecentlyViewed]);
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-10 sm:px-6">
-        <div className="animate-pulse rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800 sm:p-8">
+      <div className="max-w-3xl mx-auto px-4 py-10">
+        <div className="mb-4 h-4 w-48 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
+        <div className="animate-pulse rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-8">
           <div className="h-8 w-2/3 rounded bg-slate-200 dark:bg-slate-700" />
           <div className="mt-4 h-4 w-1/3 rounded bg-slate-200 dark:bg-slate-700" />
           <div className="mt-8 h-24 w-full rounded bg-slate-100 dark:bg-slate-700/50" />
@@ -77,13 +87,13 @@ function BookDetail() {
 
   if (error || !book) {
     return (
-      <div className="mx-auto w-full max-w-3xl px-4 py-16 text-center sm:px-6">
+      <div className="max-w-3xl mx-auto px-4 py-16 text-center">
         <p className="text-base text-red-600 dark:text-red-400">
           {error || 'Book not found.'}
         </p>
         <Link
           to="/"
-          className="mt-6 inline-flex rounded-lg bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 dark:bg-teal-500 dark:hover:bg-teal-600 dark:focus-visible:ring-offset-slate-900"
+          className="mt-6 inline-flex rounded-md bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-200"
         >
           Back to catalog
         </Link>
@@ -91,43 +101,25 @@ function BookDetail() {
     );
   }
 
-  // BULLETPROOF DEDUPLICATION:
-  // 1. Ensure reviews is an array (prevents crashes if undefined/null).
-  // 2. Use a Set to track seen userIds. This guarantees a user only appears 
-  //    once per book, even if the backend accidentally created duplicate rows.
-  const reviewsArray = Array.isArray(book.reviews) ? book.reviews : [];
-  
-  const seenUsers = new Set();
-  const uniqueReviews = reviewsArray.filter((review) => {
-    // Deduplicate primarily by userId. Fallback to review.id if userId is missing.
-    const uniqueKey = review.userId || review.id;
-    
-    if (seenUsers.has(uniqueKey)) {
-      return false; // Skip this duplicate
-    }
-    
-    seenUsers.add(uniqueKey);
-    return true; // Keep the first occurrence
-  });
-
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-      <Link
-        to="/"
-        className="inline-flex items-center text-sm font-medium text-teal-700 underline-offset-2 transition-colors duration-200 hover:text-teal-800 hover:underline dark:text-teal-400 dark:hover:text-teal-300"
-      >
-        Back to catalog
-      </Link>
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <Breadcrumb
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Catalog', href: '/' },
+          { label: book.title },
+        ]}
+      />
 
-      <article className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors duration-200 dark:border-slate-700 dark:bg-slate-800 sm:p-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-teal-700 dark:text-teal-400 sm:text-3xl">
+      <article className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-8 shadow-sm transition-colors duration-200">
+        <h1 className="text-2xl font-bold text-teal-700 dark:text-teal-400 sm:text-3xl">
           {book.title}
         </h1>
         <p className="mt-2 text-base text-slate-700 dark:text-slate-300 sm:text-lg">
           by {book.author}
         </p>
 
-        <dl className="mt-6 grid grid-cols-1 gap-4 border-y border-slate-100 py-6 dark:border-slate-700 sm:grid-cols-2">
+        <dl className="mt-6 grid grid-cols-1 gap-4 border-y border-slate-100 dark:border-slate-700 py-6 sm:grid-cols-2">
           <div>
             <dt className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
               Genre
@@ -172,16 +164,16 @@ function BookDetail() {
           <AddToReadingListButton book={book} className="w-full sm:w-auto" />
         </div>
 
-        {uniqueReviews.length > 0 && (
-          <section className="mt-10 border-t border-slate-100 pt-6 dark:border-slate-700">
+        {book.reviews && book.reviews.length > 0 ? (
+          <section className="mt-10 border-t border-slate-100 dark:border-slate-700 pt-6">
             <h2 className="text-lg font-semibold text-teal-700 dark:text-teal-400">
               Reviews
             </h2>
             <ul className="mt-4 space-y-4">
-              {uniqueReviews.map((review) => (
+              {book.reviews.map((review) => (
                 <li
-                  key={review.id || review.userId}
-                  className="rounded-xl border border-slate-100 bg-slate-50 p-4 transition-colors duration-200 dark:border-slate-700 dark:bg-slate-900/40"
+                  key={review.id}
+                  className="rounded-md border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 p-4 transition-colors duration-200"
                 >
                   <div className="flex items-center gap-2">
                     <div className="flex">{renderStars(review.rating)}</div>
@@ -197,6 +189,12 @@ function BookDetail() {
                 </li>
               ))}
             </ul>
+          </section>
+        ) : (
+          <section className="mt-10 border-t border-slate-100 dark:border-slate-700 pt-6 text-center">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              No reviews yet. Be the first to share your thoughts!
+            </p>
           </section>
         )}
       </article>

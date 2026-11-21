@@ -21,10 +21,9 @@ function AddToReadingListButton({ book, className = '' }) {
   const base =
     'inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-800';
 
-  // A saved book uses a quiet confirmation style; an unsaved book uses
-  // the solid primary accent so the main action stands out.
   const savedStyles =
     'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 focus-visible:ring-emerald-500 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50';
+  
   const unsavedStyles =
     'border-teal-600 bg-teal-600 text-white hover:border-teal-700 hover:bg-teal-700 focus-visible:ring-teal-500 dark:border-teal-500 dark:bg-teal-500 dark:hover:border-teal-600 dark:hover:bg-teal-600';
 

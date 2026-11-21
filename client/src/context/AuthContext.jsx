@@ -14,7 +14,6 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const { addToast } = useToast();
 
-  // Restore session from localStorage on mount
   useEffect(() => {
     const storedToken = localStorage.getItem(TOKEN_KEY);
     const storedUser = localStorage.getItem(USER_KEY);
@@ -24,7 +23,6 @@ export function AuthProvider({ children }) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
       } catch (error) {
-        // Corrupted data, clear it
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
       }
@@ -70,7 +68,6 @@ export function AuthProvider({ children }) {
       const accessToken = response.data?.access_token || response.data?.token;
       const newUser = response.data?.user;
 
-      // If backend returns token, store it
       if (accessToken) {
         localStorage.setItem(TOKEN_KEY, accessToken);
         localStorage.setItem(USER_KEY, JSON.stringify(newUser));
@@ -82,7 +79,6 @@ export function AuthProvider({ children }) {
         return { ok: true };
       }
 
-      // If no token, auto-login
       const loginResult = await login({
         email: userData.email,
         password: userData.password,

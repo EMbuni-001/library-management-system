@@ -7,12 +7,9 @@ const ReadingListContext = createContext();
 
 const STORAGE_KEY = 'library-reading-list';
 
-// Reducer handles all state changes in one predictable place
-// Matches the exact action types the assignment requires
 function readingListReducer(state, action) {
   switch (action.type) {
     case 'ADD_BOOK':
-      // Prevent duplicate books in the list
       if (state.some((book) => book.id === action.payload.id)) {
         return state;
       }
@@ -33,7 +30,6 @@ export function ReadingListProvider({ children }) {
   const { user, token } = useAuth();
   const { addToast } = useToast();
 
-  // Initialize from localStorage on first render
   const [readingList, dispatch] = useReducer(readingListReducer, [], () => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -43,7 +39,6 @@ export function ReadingListProvider({ children }) {
     }
   });
 
-  // Persist to localStorage on every change
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(readingList));
@@ -52,11 +47,8 @@ export function ReadingListProvider({ children }) {
     }
   }, [readingList]);
 
-  // Stretch goal: merge guest list into account on login
   useEffect(() => {
     if (token && user?.id) {
-      // In a production app, this would POST to the backend
-      // For now, we keep it in localStorage but could sync to backend
       addToast('Reading list synced with your account', 'info');
     }
   }, [token, user?.id]);
@@ -77,6 +69,8 @@ export function ReadingListProvider({ children }) {
       dispatch({ type: 'CLEAR_LIST' });
       addToast('Reading list cleared', 'info');
     },
+    // THIS WAS MISSING:
+    isInList: (bookId) => readingList.some((book) => book.id === bookId),
   };
 
   return (

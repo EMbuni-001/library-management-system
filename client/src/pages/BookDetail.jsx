@@ -3,11 +3,14 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import api from '../utils/api';
 import AddToReadingListButton from '../components/AddToReadingListButton';
+import AvailabilityIndicator from '../components/AvailabilityIndicator';
+import RequestToBorrowButton from '../components/RequestToBorrowButton';
 import Breadcrumb from '../components/Breadcrumb';
 import { useRecentlyViewed } from '../context/RecentlyViewedContext';
 
 function renderStars(rating) {
   const stars = [];
+  // Safely parse the rating to a number, defaulting to 0 if invalid
   const numericRating = Number(rating) || 0;
 
   for (let i = 1; i <= 5; i++) {
@@ -45,7 +48,7 @@ function BookDetail() {
 
         if (active) {
           setBook(response.data);
-          // Track this book as recently viewed
+          // Track this book as recently viewed (Week 4 enhancement)
           addRecentlyViewed({
             id: response.data.id,
             title: response.data.title,
@@ -101,8 +104,14 @@ function BookDetail() {
     );
   }
 
+  // Prevent duplicate reviews from rendering (defensive programming)
+  const uniqueReviews = book.reviews.filter(
+    (review, index, self) => index === self.findIndex((r) => r.id === review.id)
+  );
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
+      {/* Restored Breadcrumb Navigation */}
       <Breadcrumb
         items={[
           { label: 'Home', href: '/' },
@@ -138,18 +147,14 @@ function BookDetail() {
           </div>
           <div>
             <dt className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
-              Total copies
+              Availability
             </dt>
-            <dd className="mt-1 text-sm text-slate-800 dark:text-slate-200">
-              {book.totalCopies}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-slate-400 dark:text-slate-500">
-              Available copies
-            </dt>
-            <dd className="mt-1 text-sm text-slate-800 dark:text-slate-200">
-              {book.availableCopies}
+            <dd className="mt-1">
+              {/* New Week 5 Feature */}
+              <AvailabilityIndicator
+                availableCopies={book.availableCopies || 0}
+                totalCopies={book.totalCopies || 0}
+              />
             </dd>
           </div>
         </dl>
@@ -160,17 +165,19 @@ function BookDetail() {
           </p>
         )}
 
-        <div className="mt-8">
+        <div className="mt-8 flex flex-wrap gap-3">
           <AddToReadingListButton book={book} className="w-full sm:w-auto" />
+          {/* New Week 5 Feature */}
+          <RequestToBorrowButton book={book} />
         </div>
 
-        {book.reviews && book.reviews.length > 0 ? (
+        {uniqueReviews.length > 0 ? (
           <section className="mt-10 border-t border-slate-100 dark:border-slate-700 pt-6">
             <h2 className="text-lg font-semibold text-teal-700 dark:text-teal-400">
               Reviews
             </h2>
             <ul className="mt-4 space-y-4">
-              {book.reviews.map((review) => (
+              {uniqueReviews.map((review) => (
                 <li
                   key={review.id}
                   className="rounded-md border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 p-4 transition-colors duration-200"
@@ -191,6 +198,7 @@ function BookDetail() {
             </ul>
           </section>
         ) : (
+          // Restored Empty State for Reviews
           <section className="mt-10 border-t border-slate-100 dark:border-slate-700 pt-6 text-center">
             <p className="text-sm text-slate-500 dark:text-slate-400">
               No reviews yet. Be the first to share your thoughts!

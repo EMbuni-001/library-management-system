@@ -7,22 +7,24 @@ import { GenresModule } from './genres/genres.module';
 import { BooksModule } from './books/books.module';
 import { UsersModule } from './users/users.module';
 import { ReadingListModule } from './reading-list/reading-list.module';
+import { BorrowRequestsModule } from './borrow-requests/borrow-requests.module';
+import { BookingsModule } from './bookings/bookings.module';
 
 @Module({
   imports: [
-    // Configure rate limiting: 100 requests per 60 seconds (global default)
     ThrottlerModule.forRoot([{
-      ttl: 60000,  // Time window in milliseconds (60 seconds)
-      limit: 100,  // Max requests per time window
+      ttl: 60000,
+      limit: 100,
     }]),
     AuthModule,
     GenresModule,
     BooksModule,
     UsersModule,
-    ReadingListModule, // <-- ADDED: Registers the reading list endpoints
+    ReadingListModule,
+    BorrowRequestsModule,
+    BookingsModule,
   ],
   providers: [
-    // Apply ThrottlerGuard globally to all routes
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

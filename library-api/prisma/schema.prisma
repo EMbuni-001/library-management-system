@@ -8,60 +8,64 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// The SQL output showed "USER-DEFINED" for the role column, 
-// which means it is a Postgres Enum.
-enum Role {
-  PATRON
-  LIBRARIAN
+enum BorrowStatus {
+  REQUESTED
+  APPROVED
+  BORROWED
+  RETURNED
+  OVERDUE
+  CANCELLED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
 }
 
 model User {
-  id          Int               @id @default(autoincrement())
-  email       String            @unique
-  password    String
-  name        String?
-  role        Role              @default(PATRON)
-  reviews     Review[]
-  readingList ReadingListItem[]
-
-  @@map("User")
+  id             Int             @id @default(autoincrement())
+  email          String          @unique
+  password       String
+  name           String?
+  role           String          @default("PATRON")
+  reviews        Review[]
+  readingList    ReadingListItem[]
+  borrowRequests BorrowRequest[]
+  bookings       Booking[]
 }
 
 model Book {
-  id                Int               @id @default(autoincrement())
-  title             String
-  author            String
-  isbn              String
-  totalCopies       Int
-  availableCopies   Int
-  genreId           Int
-  description       String?
-  coverImage        String?
-  genre             Genre             @relation(fields: [genreId], references: [id])
-  reviews           Review[]
-  readingList       ReadingListItem[]
-
-  @@map("Book")
+  id             Int             @id @default(autoincrement())
+  title          String
+  author         String
+  isbn           String
+  description    String?
+  coverImage     String?
+  totalCopies    Int             @default(1)
+  availableCopies Int            @default(1)
+  genreId        Int
+  genre          Genre           @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  reviews        Review[]
+  readingList    ReadingListItem[]
+  borrowRequests BorrowRequest[]
 }
 
 model Genre {
   id    Int    @id @default(autoincrement())
   name  String @unique
   books Book[]
-
-  @@map("Genre")
 }
 
 model Review {
-  id        Int    @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   rating    Int
-  comment   String
-  bookId    Int
+  comment   String?
   userId    Int
-  book      Book   @relation(fields: [bookId], references: [id])
-  user      User   @relation(fields: [userId], references: [id])
-
-  @@map("Review")
+  bookId    Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
 
 model ReadingListItem {
@@ -69,9 +73,44 @@ model ReadingListItem {
   userId    Int
   bookId    Int
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
-  book      Book     @relation(fields: [bookId], references: [id])
-
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   @@unique([userId, bookId])
-  @@map("ReadingListItem")
+}
+
+model BorrowRequest {
+  id           Int          @id @default(autoincrement())
+  userId       Int
+  bookId       Int
+  bookTitle    String
+  bookAuthor   String
+  status       BorrowStatus @default(REQUESTED)
+  requestDate  DateTime     @default(now())
+  dueDate      DateTime?
+  returnDate   DateTime?
+  fineAmount   Float        @default(0)
+  
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book         Book         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
+
+model Space {
+  id        Int       @id @default(autoincrement())
+  name      String
+  detail    String?
+  bookings  Booking[]
+}
+
+model Booking {
+  id        Int           @id @default(autoincrement())
+  userId    Int
+  spaceId   Int
+  date      DateTime      @db.Date
+  startTime String
+  endTime   String
+  status    BookingStatus @default(CONFIRMED)
+  createdAt DateTime      @default(now())
+  
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  space     Space         @relation(fields: [spaceId], references: [id], onDelete: Cascade)
 }

@@ -22,19 +22,16 @@ import { Roles } from '../auth/roles.decorator';
 export class BorrowRequestsController {
   constructor(private readonly borrowRequestsService: BorrowRequestsService) {}
 
-  // Patron creates a request
   @Post()
-  create(@Request() req, @Body() dto: CreateBorrowRequestDto) {
+  create(@Request() req: any, @Body() dto: CreateBorrowRequestDto) {
     return this.borrowRequestsService.create(req.user.userId, dto);
   }
 
-  // Patron sees their own requests
   @Get('my')
-  findMyRequests(@Request() req) {
+  findMyRequests(@Request() req: any) {
     return this.borrowRequestsService.findAllForUser(req.user.userId);
   }
 
-  // Librarian sees all requests
   @Get()
   @UseGuards(RolesGuard)
   @Roles('LIBRARIAN')
@@ -42,7 +39,6 @@ export class BorrowRequestsController {
     return this.borrowRequestsService.findAll();
   }
 
-  // Librarian updates status
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles('LIBRARIAN')

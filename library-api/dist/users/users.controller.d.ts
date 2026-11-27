@@ -5,7 +5,7 @@ export declare class UsersController {
     getProfile(req: any): Promise<{
         email: string;
         name: string | null;
-        role: import(".prisma/client").$Enums.Role;
+        role: string;
         id: number;
         reviews: {
             book: {
@@ -13,7 +13,7 @@ export declare class UsersController {
             };
             id: number;
             rating: number;
-            comment: string;
+            comment: string | null;
         }[];
     }>;
 }

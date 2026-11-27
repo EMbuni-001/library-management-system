@@ -5,7 +5,6 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -30,12 +29,11 @@ export class AuthService {
         email: dto.email,
         password: hashedPassword,
         name: dto.name,
-        // Cast the string to the Prisma Role enum to satisfy TypeScript
-        role: (dto.role as Role) || Role.PATRON,
+        // Use plain string 'PATRON' since schema defines role as String, not an enum
+        role: dto.role || 'PATRON',
       },
     });
 
-    // Return user without the password field
     const { password, ...result } = user;
     return result;
   }
@@ -50,7 +48,6 @@ export class AuthService {
     }
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }

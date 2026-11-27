@@ -13,9 +13,10 @@ export declare class BooksService {
             reviews: {
                 id: number;
                 rating: number;
-                comment: string;
-                bookId: number;
+                comment: string | null;
                 userId: number;
+                bookId: number;
+                createdAt: Date;
             }[];
         } & {
             id: number;
@@ -43,9 +44,10 @@ export declare class BooksService {
         reviews: {
             id: number;
             rating: number;
-            comment: string;
-            bookId: number;
+            comment: string | null;
             userId: number;
+            bookId: number;
+            createdAt: Date;
         }[];
     } & {
         id: number;

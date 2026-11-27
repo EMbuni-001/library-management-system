@@ -19,12 +19,12 @@ export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post()
-  create(@Request() req, @Body() dto: CreateBookingDto) {
+  create(@Request() req: any, @Body() dto: CreateBookingDto) {
     return this.bookingsService.create(req.user.userId, dto);
   }
 
   @Get('my')
-  findMyBookings(@Request() req) {
+  findMyBookings(@Request() req: any) {
     return this.bookingsService.findAllForUser(req.user.userId);
   }
 

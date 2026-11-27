@@ -15,11 +15,13 @@ function Navbar() {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
+  // Close menus when navigating to a new page
   useEffect(() => {
     setMenuOpen(false);
     setDropdownOpen(false);
   }, [location.pathname]);
 
+  // Handle click outside and Escape key for dropdown
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -69,6 +71,7 @@ function Navbar() {
   const themeButtonClasses =
     'rounded-lg border border-slate-300 p-2 text-slate-700 transition-colors duration-200 hover:border-teal-400 hover:bg-teal-50 hover:text-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 dark:border-slate-600 dark:text-slate-300 dark:hover:border-teal-500 dark:hover:bg-slate-700 dark:hover:text-teal-300';
 
+  // Main navigation links (kept clean, personal items moved to dropdown)
   const navLinks = (
     <>
       <NavLink to="/" className={linkClasses} end>
@@ -86,18 +89,10 @@ function Navbar() {
         </span>
       </NavLink>
       {isAuthenticated && (
-        <>
-          <NavLink to="/my-borrows" className={linkClasses}>
-            My Borrows
-          </NavLink>
-          <NavLink to="/my-bookings" className={linkClasses}>
-            My Bookings
-          </NavLink>
-        </>
+        <NavLink to="/bookings" className={linkClasses}>
+          Book a space
+        </NavLink>
       )}
-      <NavLink to="/bookings" className={linkClasses}>
-        Book a space
-      </NavLink>
       {isAuthenticated && user?.role === 'LIBRARIAN' && (
         <NavLink to="/admin/dashboard" className={linkClasses}>
           Admin
@@ -106,6 +101,7 @@ function Navbar() {
     </>
   );
 
+  // Desktop: Theme toggle + User Dropdown (or Login/Register)
   const desktopAuthControls = isAuthenticated ? (
     <div className="flex items-center gap-3">
       <div className="relative" ref={dropdownRef}>
@@ -116,6 +112,7 @@ function Navbar() {
           aria-haspopup="true"
           className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-1.5 text-sm transition-colors duration-200 hover:border-teal-400 hover:bg-teal-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 dark:border-slate-600 dark:hover:border-teal-500 dark:hover:bg-slate-700"
         >
+          {/* Role Icon */}
           {user?.role === 'LIBRARIAN' ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -145,9 +142,12 @@ function Navbar() {
               />
             </svg>
           )}
+          
           <span className="text-slate-700 dark:text-slate-200">
             {getFirstName()}
           </span>
+          
+          {/* Dropdown Chevron */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className={`h-4 w-4 text-slate-500 transition-transform duration-200 ${
@@ -165,11 +165,13 @@ function Navbar() {
           </svg>
         </button>
 
+        {/* Dropdown Menu */}
         {dropdownOpen && (
           <div
             role="menu"
             className="absolute right-0 z-40 mt-2 w-64 rounded-lg border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800"
           >
+            {/* Profile Header */}
             <div className="border-b border-slate-100 p-4 dark:border-slate-700">
               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {user?.name || 'Member'}
@@ -197,7 +199,7 @@ function Navbar() {
                       d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                       clipRule="evenodd"
                     />
-                  </svg>
+          </svg>
                 ) : (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -216,11 +218,14 @@ function Navbar() {
                 {user?.role === 'LIBRARIAN' ? 'Librarian' : 'Patron'}
               </span>
             </div>
+            
+            {/* Dropdown Links */}
             <div className="p-1">
               <NavLink
                 to="/my-borrows"
                 role="menuitem"
                 className="block rounded-md px-3 py-2 text-sm text-slate-700 transition-colors duration-200 hover:bg-teal-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-teal-300"
+                onClick={() => setDropdownOpen(false)}
               >
                 My Borrows
               </NavLink>
@@ -228,10 +233,13 @@ function Navbar() {
                 to="/my-bookings"
                 role="menuitem"
                 className="block rounded-md px-3 py-2 text-sm text-slate-700 transition-colors duration-200 hover:bg-teal-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-teal-300"
+                onClick={() => setDropdownOpen(false)}
               >
                 My Bookings
               </NavLink>
             </div>
+            
+            {/* Logout */}
             <div className="border-t border-slate-100 p-1 dark:border-slate-700">
               <button
                 type="button"
@@ -263,6 +271,7 @@ function Navbar() {
     </div>
   );
 
+  // Mobile: Profile header + Logout (or Login/Register)
   const mobileAuthControls = isAuthenticated ? (
     <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700">
       <div className="mb-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-700/50">
@@ -295,12 +304,14 @@ function Navbar() {
       <Link
         to="/login"
         className="rounded-lg px-3 py-2 text-center text-sm font-medium text-slate-700 transition-colors duration-200 hover:bg-teal-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-teal-300"
+        onClick={() => setMenuOpen(false)}
       >
         Log in
       </Link>
       <Link
         to="/register"
         className="rounded-lg bg-teal-600 px-3 py-2 text-center text-sm font-medium text-white transition-colors duration-200 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600"
+        onClick={() => setMenuOpen(false)}
       >
         Register
       </Link>
@@ -316,9 +327,13 @@ function Navbar() {
         >
           Library Management
         </Link>
+        
+        {/* Desktop Navigation */}
         <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
           {navLinks}
         </nav>
+        
+        {/* Desktop Right Side: Theme + Auth */}
         <div className="hidden md:flex md:items-center md:gap-4">
           <button
             type="button"
@@ -354,6 +369,8 @@ function Navbar() {
           </button>
           {desktopAuthControls}
         </div>
+        
+        {/* Mobile Hamburger Button */}
         <button
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
@@ -369,6 +386,8 @@ function Navbar() {
           </span>
         </button>
       </div>
+      
+      {/* Mobile Menu Panel */}
       {menuOpen && (
         <div
           id="mobile-menu"
@@ -377,6 +396,8 @@ function Navbar() {
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {navLinks}
           </nav>
+          
+          {/* Mobile Theme Toggle (Labelled Row) */}
           <div className="mt-3 flex items-center justify-between gap-3 border-t border-slate-200 pt-3 dark:border-slate-700">
             <button
               type="button"
@@ -414,6 +435,7 @@ function Navbar() {
               )}
             </button>
           </div>
+          
           {mobileAuthControls}
         </div>
       )}

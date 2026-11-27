@@ -18,13 +18,16 @@ import { Roles } from '../auth/roles.decorator';
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
-  // Patron creates a booking
   @Post()
   create(@Request() req, @Body() dto: CreateBookingDto) {
     return this.bookingsService.create(req.user.userId, dto);
   }
 
-  // Librarian sees all bookings
+  @Get('my')
+  findMyBookings(@Request() req) {
+    return this.bookingsService.findAllForUser(req.user.userId);
+  }
+
   @Get()
   @UseGuards(RolesGuard)
   @Roles('LIBRARIAN')

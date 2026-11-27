@@ -15,6 +15,8 @@ const genres_module_1 = require("./genres/genres.module");
 const books_module_1 = require("./books/books.module");
 const users_module_1 = require("./users/users.module");
 const reading_list_module_1 = require("./reading-list/reading-list.module");
+const borrow_requests_module_1 = require("./borrow-requests/borrow-requests.module");
+const bookings_module_1 = require("./bookings/bookings.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -30,6 +32,8 @@ exports.AppModule = AppModule = __decorate([
             books_module_1.BooksModule,
             users_module_1.UsersModule,
             reading_list_module_1.ReadingListModule,
+            borrow_requests_module_1.BorrowRequestsModule,
+            bookings_module_1.BookingsModule,
         ],
         providers: [
             {

@@ -14,6 +14,11 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ReadingListPage from './pages/ReadingListPage';
 import SpaceBookingPage from './pages/SpaceBookingPage';
+import MyBorrowsPage from './pages/MyBorrowsPage';
+import MyBookingsPage from './pages/MyBookingsPage';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminBorrowRequests from './pages/AdminBorrowRequests';
+import AdminBookings from './pages/AdminBookings';
 
 function App() {
   return (
@@ -23,6 +28,8 @@ function App() {
           <AuthProvider>
             <ReadingListProvider>
               <RecentlyViewedProvider>
+                {/* Accessibility: keyboard users can jump past the navbar
+                    straight to the main content area. */}
                 <a
                   href="#main-content"
                   className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-teal-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-md"
@@ -33,11 +40,21 @@ function App() {
                   <Navbar />
                   <main id="main-content" className="container mx-auto px-4 py-8">
                     <Routes>
+                      {/* Public routes */}
                       <Route path="/" element={<HomePage />} />
                       <Route path="/books/:id" element={<BookDetail />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/register" element={<RegisterPage />} />
-                      <Route path="/reading-list" element={<ReadingListPage />} />
+
+                      {/* Patron routes - require authentication */}
+                      <Route
+                        path="/reading-list"
+                        element={
+                          <ProtectedRoute>
+                            <ReadingListPage />
+                          </ProtectedRoute>
+                        }
+                      />
                       <Route
                         path="/bookings"
                         element={
@@ -46,6 +63,53 @@ function App() {
                           </ProtectedRoute>
                         }
                       />
+                      <Route
+                        path="/my-borrows"
+                        element={
+                          <ProtectedRoute>
+                            <MyBorrowsPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/my-bookings"
+                        element={
+                          <ProtectedRoute>
+                            <MyBookingsPage />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Admin routes - require authentication.
+                          Role-based access (LIBRARIAN only) is enforced
+                          server-side via JwtAuthGuard + RolesGuard, and
+                          the Navbar only shows these links to librarians. */}
+                      <Route
+                        path="/admin/dashboard"
+                        element={
+                          <ProtectedRoute>
+                            <AdminDashboard />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/borrow-requests"
+                        element={
+                          <ProtectedRoute>
+                            <AdminBorrowRequests />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/bookings"
+                        element={
+                          <ProtectedRoute>
+                            <AdminBookings />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Catch-all 404 route */}
                       <Route
                         path="*"
                         element={

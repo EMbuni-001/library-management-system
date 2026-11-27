@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { ReadingListModule } from './reading-list/reading-list.module';
 import { BorrowRequestsModule } from './borrow-requests/borrow-requests.module';
 import { BookingsModule } from './bookings/bookings.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { BookingsModule } from './bookings/bookings.module';
     ReadingListModule,
     BorrowRequestsModule,
     BookingsModule,
+    AdminModule,
   ],
   providers: [
     {
